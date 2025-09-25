@@ -148,7 +148,7 @@ const NavBar = () => {
   );
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <>
       <AppBar position="sticky" elevation={2}>
         <Toolbar>
           {/* Brand/Logo */}
@@ -242,7 +242,7 @@ const NavBar = () => {
       >
         {drawer}
       </Drawer>
-    </Box>
+    </>
   );
 };
 
