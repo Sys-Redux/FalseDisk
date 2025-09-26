@@ -80,9 +80,13 @@ const NavBar = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // Handle search functionality here
-    console.log('Search query:', searchQuery);
-    // You can navigate to a search results page or filter products
+    // Search functionality
+    // Navigate to products page with search query as URL parameter
+    if (searchQuery.trim()) {
+        navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+        navigate('/products');
+    }
   };
 
   const menuItems = [
