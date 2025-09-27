@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
-  Button,
-  CircularProgress,
-  Chip
+    Box,
+    Container,
+    Typography,
+    Grid,
+    Card,
+    CardMedia,
+    CardContent,
+    CardActions,
+    Button,
+    CircularProgress,
+    Chip
 } from '@mui/material';
 import { Add as AddIcon, Info as InfoIcon } from '@mui/icons-material';
+import ProductDetails from './ProductDetails';
 
 function ProductListings() {
     const [products, setProducts] = useState([]);
@@ -22,7 +23,8 @@ function ProductListings() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
-    const navigate = useNavigate();
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
     // Get search query from URL parameters on initial render
     useEffect(() => {
@@ -69,7 +71,17 @@ function ProductListings() {
 
     // Navigate to Product Details
     const handleViewDetails = (productID) => {
-        navigate(`/products/${productID}`);
+        const product = products.find(p => p.id === productID);
+        if (product) {
+            setSelectedProduct(product);
+            setModalOpen(true);
+        }
+    };
+
+    // Close Modal
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setSelectedProduct(null);
     };
 
     if (loading) {
@@ -216,6 +228,13 @@ function ProductListings() {
                     )}
                 </Box>
             )}
+
+            {/* Product Details Modal */}
+            <ProductDetails
+                open={modalOpen}
+                product={selectedProduct}
+                onClose={handleCloseModal}
+            />
         </Container>
     );
 }
