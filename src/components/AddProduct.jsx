@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -13,9 +13,13 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
+import DeleteProduct from './DeleteProduct';
 
 function AddProduct() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const product = location.state?.product || null;
+    const isEditing = !!product;
     const [formData, setFormData] = useState({
         title: '',
         price: '',
@@ -25,8 +29,20 @@ function AddProduct() {
 
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [product, setProduct] = useState(null);
+    const [savedProduct, setSavedProduct] = useState(null);
     const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (product) {
+            // product passed as prop (editing in modal)
+            setFormData({
+                title: product.title || '',
+                price: product.price || '',
+                description: product.description || '',
+                image: product.image || ''
+            });
+        }
+    }, [product]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -49,24 +65,35 @@ function AddProduct() {
         }
 
         try {
-            const response = await axios.post('https://fakestoreapi.com/products', {
+            const url = isEditing
+                ? `https://fakestoreapi.com/products/${product.id}`
+                : 'https://fakestoreapi.com/products';
+
+            const method = isEditing ? 'put' : 'post';
+
+            const response = await axios[method](url, {
                 ...formData,
                 price: parseFloat(formData.price)
             });
-            setProduct(response.data);
+
+            setSavedProduct(response.data);
             setError(null);
 
-            // Redirect after success
             setTimeout(() => {
                 navigate('/products');
             }, 2000);
         } catch (err) {
-            setError(`Error adding product: ${err.message}`);
+            setError(`Error ${isEditing ? 'updating' : 'adding'} product: ${err.message}`);
             setSubmitted(false);
         } finally {
             setLoading(false);
         }
     };
+
+    const handleDeleteSuccess = () => {
+        navigate('/products');
+    };
+
 
     return (
         <Container maxWidth='md' sx={{ py: 4 }}>
@@ -83,15 +110,15 @@ function AddProduct() {
                     </Button>
 
                     <Typography variant='h3' component='h1' gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                        Add New Product
+                        {isEditing ? 'Edit Product' : 'Add New Product'}
                     </Typography>
                 </Box>
 
                 <Divider sx={{ mb: 4 }} />
 
-                {submitted && product && (
+                {submitted && savedProduct && (
                     <Alert severity='success' sx={{ mb: 3 }}>
-                        {product.title} added successfully!
+                        {savedProduct.title} {isEditing ? 'updated' : 'added'} successfully!
                     </Alert>
                 )}
 
@@ -160,21 +187,33 @@ function AddProduct() {
 
                         <Grid size={{ xs: 12 }}>
                             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
-                                <Button
-                                    variant='outlined'
-                                    onClick={() => navigate('/products')}
-                                    disabled={loading}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type='submit'
-                                    variant='contained'
-                                    startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Adding...' : 'Add Product'}
-                                </Button>
+                                {isEditing && (
+                                    <DeleteProduct
+                                        productId={product.id}
+                                        onDeleteSuccess={handleDeleteSuccess}
+                                    />
+                                )}
+
+                                <Box sx={{ display: 'flex', gap: 2, ml: 'auto' }}>
+                                    <Button
+                                        variant='outlined'
+                                        onClick={() => navigate('/products')}
+                                        disabled={loading}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type='submit'
+                                        variant='contained'
+                                        startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+                                        disabled={loading}
+                                    >
+                                        {loading
+                                            ? (isEditing ? 'Updating...' : 'Adding...')
+                                            : (isEditing ? 'Update Product' : 'Add Product')
+                                        }
+                                    </Button>
+                                </Box>
                             </Box>
                         </Grid>
                     </Grid>

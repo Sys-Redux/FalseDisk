@@ -36,7 +36,7 @@ function ProductDetails({ open, product, onClose }) {
     };
 
     const handleEditProduct = () => {
-        navigate(`/edit-product/${product.id}`);
+        navigate('/edit-product', { state: { product } });
         onClose();
     };
 
