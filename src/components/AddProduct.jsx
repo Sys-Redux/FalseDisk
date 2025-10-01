@@ -64,6 +64,7 @@ function AddProduct() {
             return;
         }
 
+        // Logic to Add or Edit
         try {
             const url = isEditing
                 ? `https://fakestoreapi.com/products/${product.id}`
